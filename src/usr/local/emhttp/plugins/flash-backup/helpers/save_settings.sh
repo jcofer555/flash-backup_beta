@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CONFIG="/boot/config/plugins/flash-backup/settings.cfg"
+CONFIG="/boot/config/plugins/flash-backup_beta/settings.cfg"
 TMP="${CONFIG}.tmp"
 
 mkdir -p "$(dirname "$CONFIG")"

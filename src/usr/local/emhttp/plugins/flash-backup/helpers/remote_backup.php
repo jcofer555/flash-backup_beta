@@ -1,16 +1,16 @@
 <?php
 header('Content-Type: application/json');
 
-$lockDir = '/tmp/flash-backup';
+$lockDir = '/tmp/flash-backup_beta';
 $lock = "$lockDir/lock.txt";
-$script = '/usr/local/emhttp/plugins/flash-backup/helpers/remote_backup.sh';
+$script = '/usr/local/emhttp/plugins/flash-backup_beta/helpers/remote_backup.sh';
 
 if (!is_dir($lockDir)) {
     mkdir($lockDir, 0777, true);
 }
 
 // Load settings.cfg
-$settingsFile = "/boot/config/plugins/flash-backup/settings_remote.cfg";
+$settingsFile = "/boot/config/plugins/flash-backup_beta/settings_remote.cfg";
 $settings = [];
 
 if (is_file($settingsFile)) {

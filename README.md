@@ -1,4 +1,4 @@
-### Flash Backup ###
+### Flash Backup Beta###
 
 **A utility to backup the unRAID flash drive**
 
@@ -10,4 +10,4 @@
 - Dry run support
 - Basic Notification support
 - Ability to set an owner for your local backups
-- Logging available in the webui and at /tmp/flash-backup/flash-backup.log
+- Logging available in the webui and at /tmp/flash-backup_beta/flash-backup_beta.log

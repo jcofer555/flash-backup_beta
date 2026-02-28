@@ -8,7 +8,7 @@ if (!$id) {
     exit;
 }
 
-$cfg = '/boot/config/plugins/flash-backup/schedules-remote.cfg';
+$cfg = '/boot/config/plugins/flash-backup_beta/schedules-remote.cfg';
 $schedules = parse_ini_file($cfg, true, INI_SCANNER_RAW);
 
 if (!isset($schedules[$id])) {
@@ -16,9 +16,9 @@ if (!isset($schedules[$id])) {
     exit;
 }
 
-$lockDir = '/tmp/flash-backup';
+$lockDir = '/tmp/flash-backup_beta';
 $lock    = "$lockDir/lock.txt";
-$script  = '/usr/local/emhttp/plugins/flash-backup/helpers/remote_backup.sh';
+$script  = '/usr/local/emhttp/plugins/flash-backup_beta/helpers/remote_backup.sh';
 
 if (!is_dir($lockDir)) {
     mkdir($lockDir, 0777, true);

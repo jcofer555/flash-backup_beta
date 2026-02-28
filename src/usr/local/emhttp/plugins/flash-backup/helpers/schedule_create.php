@@ -1,7 +1,7 @@
 <?php
 require_once 'rebuild_cron.php';
 
-$cfg = '/boot/config/plugins/flash-backup/schedules.cfg';
+$cfg = '/boot/config/plugins/flash-backup_beta/schedules.cfg';
 
 $type     = $_POST['type'] ?? '';
 $cron     = trim($_POST['cron'] ?? '');

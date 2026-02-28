@@ -1,7 +1,7 @@
 <?php
 function rebuild_cron() {
-    $cfg = '/boot/config/plugins/flash-backup/schedules.cfg';
-    $cronFile = '/boot/config/plugins/flash-backup/flash-backup.cron';
+    $cfg = '/boot/config/plugins/flash-backup_beta/schedules.cfg';
+    $cronFile = '/boot/config/plugins/flash-backup_beta/flash-backup_beta.cron';
 
     if (!file_exists($cfg)) {
         file_put_contents($cronFile, "");
@@ -26,7 +26,7 @@ function rebuild_cron() {
         }
 
         $out .= $cron . " php ";
-        $out .= "/usr/local/emhttp/plugins/flash-backup/helpers/run_schedule.php $id\n";
+        $out .= "/usr/local/emhttp/plugins/flash-backup_beta/helpers/run_schedule.php $id\n";
     }
 
     file_put_contents($cronFile, $out);

@@ -1,5 +1,5 @@
 <?php
-$cfg = '/boot/config/plugins/flash-backup/schedules.cfg';
+$cfg = '/boot/config/plugins/flash-backup_beta/schedules.cfg';
 $id = $_GET['id'] ?? null;
 
 if (!$id) {

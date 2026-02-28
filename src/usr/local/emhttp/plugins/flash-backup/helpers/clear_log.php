@@ -21,7 +21,7 @@ if ($csrfHeader !== $cookieToken && $postToken !== $cookieToken) {
 
 $log = $_POST['log'] ?? '';
 $files = [
-    'last'  => '/tmp/flash-backup/flash-backup.log'
+    'last'  => '/tmp/flash-backup_beta/flash-backup_beta.log'
 ];
 
 if (!isset($files[$log])) {

@@ -1,9 +1,9 @@
 {
-    "name": "flash-backup",
-    "package_name": "unraid-flash-backup",
+    "name": "flash-backup_beta",
+    "package_name": "unraid-flash-backup_beta",
     "author": "jcofer555",
     "icon": "icon.png",
-    "support": "https://forums.unraid.net/topic/197218-flash-backup-for-unraid/",
+    "support": "https://forums.unraid.net/topic/197218-flash-backup_beta-for-unraid/",
     "min": "7.1.0",
-    "launch": "Settings/flash-backup"
+    "launch": "Settings/flash-backup_beta"
 }

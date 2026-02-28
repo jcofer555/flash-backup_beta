@@ -1,7 +1,7 @@
 <?php
 require_once 'rebuild_cron.php';
 
-$cfg = '/boot/config/plugins/flash-backup/schedules.cfg';
+$cfg = '/boot/config/plugins/flash-backup_beta/schedules.cfg';
 $id  = $_POST['id'] ?? '';
 
 if (!$id || !file_exists($cfg)) {

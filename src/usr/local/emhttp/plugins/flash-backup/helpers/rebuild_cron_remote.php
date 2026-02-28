@@ -1,7 +1,7 @@
 <?php
 function rebuild_cron_remote() {
-    $cfg      = '/boot/config/plugins/flash-backup/schedules-remote.cfg';
-    $cronFile = '/boot/config/plugins/flash-backup/flash-backup-remote.cron';
+    $cfg      = '/boot/config/plugins/flash-backup_beta/schedules-remote.cfg';
+    $cronFile = '/boot/config/plugins/flash-backup_beta/flash-backup_beta-remote.cron';
 
     if (!file_exists($cfg)) {
         file_put_contents($cronFile, "");
@@ -25,7 +25,7 @@ function rebuild_cron_remote() {
         }
 
         $out .= $cron . " php ";
-        $out .= "/usr/local/emhttp/plugins/flash-backup/helpers/run_schedule_remote.php $id\n";
+        $out .= "/usr/local/emhttp/plugins/flash-backup_beta/helpers/run_schedule_remote.php $id\n";
     }
 
     file_put_contents($cronFile, $out);

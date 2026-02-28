@@ -2,8 +2,8 @@
 header('Content-Type: application/json');
 
 $cfgs = [
-    '/boot/config/plugins/flash-backup/schedules.cfg',
-    '/boot/config/plugins/flash-backup/schedules-remote.cfg',
+    '/boot/config/plugins/flash-backup_beta/schedules.cfg',
+    '/boot/config/plugins/flash-backup_beta/schedules-remote.cfg',
 ];
 
 $crons = [];

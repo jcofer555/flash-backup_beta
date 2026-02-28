@@ -1,5 +1,5 @@
 <?php
-$lock = '/tmp/flash-backup/lock.txt';
+$lock = '/tmp/flash-backup_beta/lock.txt';
 
 header('Content-Type: application/json');
 echo json_encode([

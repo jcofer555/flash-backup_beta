@@ -1,8 +1,8 @@
-unraid-plugin: Flash Backup
+unraid-plugin: Flash Backup Beta
 unraid-plugin:
 unraid-plugin: A utility to backup the unRAID flash drive
 unraid-plugin: 
-unraid-plugin: Homepage: https://github.com/jcofer555/vm-backup-and-restore
+unraid-plugin: Homepage: https://github.com/jcofer555/flash-backup_beta
 unraid-plugin:
 unraid-plugin:
 unraid-plugin:

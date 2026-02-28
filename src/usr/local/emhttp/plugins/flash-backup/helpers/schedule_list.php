@@ -1,5 +1,5 @@
 <?php
-$cfg = '/boot/config/plugins/flash-backup/schedules.cfg';
+$cfg = '/boot/config/plugins/flash-backup_beta/schedules.cfg';
 
 $schedules = [];
 if (file_exists($cfg)) {
@@ -63,7 +63,7 @@ function humanCron($cron) {
 
 <h3>📅 Scheduled Local Backup Jobs</h3>
 
-<table class="flash-backup-schedules-table"
+<table class="flash-backup_beta-schedules-table"
        style="width:100%; border-collapse: collapse; margin-top:20px; border:1px solid #ccc; table-layout:fixed;">
 
 <thead>
@@ -125,7 +125,7 @@ function humanCron($cron) {
 
             <!-- Scheduling -->
             <td style="padding:8px; text-align:center;">
-                <span class="flash-backuptip" title="<?php echo htmlspecialchars(humanCron($cron)); ?> - <?php echo htmlspecialchars($cron); ?>">
+                <span class="flash-backup_betatip" title="<?php echo htmlspecialchars(humanCron($cron)); ?> - <?php echo htmlspecialchars($cron); ?>">
                     <?php echo htmlspecialchars(humanCron($cron)); ?>
                 </span>
             </td>
@@ -142,7 +142,7 @@ function humanCron($cron) {
                 white-space:nowrap;
                 overflow:hidden;
                 text-overflow:ellipsis;"
-                class="flash-backuptip"
+                class="flash-backup_betatip"
                 title="<?php echo htmlspecialchars($dest); ?>">
                 <?php echo htmlspecialchars($dest); ?>
             </td>
@@ -171,28 +171,28 @@ function humanCron($cron) {
             <td style="padding:0px; text-align:center;">
 
                 <button type="button"
-                        class="flash-backuptip"
+                        class="flash-backup_betatip"
                         title="Edit schedule"
                         onclick="editSchedule('<?php echo $id; ?>')">
                     Edit
                 </button>
 
                 <button type="button"
-                        class="flash-backuptip"
+                        class="flash-backup_betatip"
                         title="<?php echo $enabledBool ? 'Disable schedule' : 'Enable schedule'; ?>"
                         onclick="toggleSchedule('<?php echo $id; ?>', <?php echo $enabledBool ? 'true' : 'false'; ?>)">
                     <?php echo $btnText; ?>
                 </button>
 
                 <button type="button"
-                        class="flash-backuptip"
+                        class="flash-backup_betatip"
                         title="Delete schedule"
                         onclick="deleteSchedule('<?php echo $id; ?>')">
                     Delete
                 </button>
 
                 <button type="button"
-                        class="schedule-action-btn running-btn run-schedule-btn flash-backuptip"
+                        class="schedule-action-btn running-btn run-schedule-btn flash-backup_betatip"
                         title="Run schedule"
                         onclick="runScheduleBackup('<?php echo $id; ?>', this)">
                     Run

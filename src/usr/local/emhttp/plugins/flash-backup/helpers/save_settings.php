@@ -1,7 +1,7 @@
 <?php
 header('Content-Type: application/json');
 
-$cmd = '/usr/local/emhttp/plugins/flash-backup/helpers/save_settings.sh';
+$cmd = '/usr/local/emhttp/plugins/flash-backup_beta/helpers/save_settings.sh';
 
 // --- Grab raw values ---
 $minimal_backup          = $_GET['MINIMAL_BACKUP'] ?? '';

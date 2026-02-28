@@ -125,13 +125,13 @@ get_rclone_flags() {
 # ----------------------------
 # Config / Paths
 # ----------------------------
-PLUGIN_NAME="flash-backup"
+PLUGIN_NAME="flash-backup_beta"
 
-LOG_DIR="/tmp/flash-backup"
-LAST_RUN_FILE="$LOG_DIR/flash-backup.log"
+LOG_DIR="/tmp/flash-backup_beta"
+LAST_RUN_FILE="$LOG_DIR/flash-backup_beta.log"
 ROTATE_DIR="$LOG_DIR/archived_logs"
 STATUS_FILE="$LOG_DIR/remote_backup_status.txt"
-DEBUG_LOG="$LOG_DIR/flash-backup-remote-debug.log"
+DEBUG_LOG="$LOG_DIR/flash-backup_beta-remote-debug.log"
 
 # ----------------------------
 # Helpers: Status + Logging
@@ -168,13 +168,13 @@ if [[ -f "$DEBUG_LOG" ]]; then
   max_bytes=$((10 * 1024 * 1024))
   if (( size_bytes >= max_bytes )); then
     ts="$(date +%Y%m%d_%H%M%S)"
-    mv "$DEBUG_LOG" "$ROTATE_DIR/flash-backup-remote-debug_$ts.log"
-    debug_log "Rotated debug log to $ROTATE_DIR/flash-backup-remote-debug_$ts.log (was >= 10MB)"
+    mv "$DEBUG_LOG" "$ROTATE_DIR/flash-backup_beta-remote-debug_$ts.log"
+    debug_log "Rotated debug log to $ROTATE_DIR/flash-backup_beta-remote-debug_$ts.log (was >= 10MB)"
   fi
 fi
 
 # Keep only 10 rotated debug logs
-mapfile -t rotated_debug_logs < <(ls -1t "$ROTATE_DIR"/flash-backup-remote-debug_*.log 2>/dev/null)
+mapfile -t rotated_debug_logs < <(ls -1t "$ROTATE_DIR"/flash-backup_beta-remote-debug_*.log 2>/dev/null)
 if (( ${#rotated_debug_logs[@]} > 10 )); then
   for (( i=10; i<${#rotated_debug_logs[@]}; i++ )); do
     rm -f "${rotated_debug_logs[$i]}"
@@ -284,7 +284,7 @@ sleep 5
 # Cleanup trap
 # ----------------------------
 cleanup() {
-    LOCK_FILE="/tmp/flash-backup/lock.txt"
+    LOCK_FILE="/tmp/flash-backup_beta/lock.txt"
     rm -f "$LOCK_FILE"
     rm -f /tmp/flash_*.tar.gz /tmp/flash_*.tar.gz.tmp 2>/dev/null
     debug_log "Lock file and temp files removed"

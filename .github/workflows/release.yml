@@ -1,4 +1,4 @@
-name: Flash Backup
+name: Flash Backup Beta
 
 on:
   release:

@@ -8,7 +8,7 @@ if (!$id) {
     exit;
 }
 
-$cfg = '/boot/config/plugins/flash-backup/schedules-remote.cfg';
+$cfg = '/boot/config/plugins/flash-backup_beta/schedules-remote.cfg';
 if (!file_exists($cfg)) {
     http_response_code(404);
     echo json_encode(['status' => 'error', 'message' => 'Remote schedules file not found']);
@@ -40,7 +40,7 @@ foreach ($settings as $k => $v) {
 }
 $env .= 'SCHEDULE_ID="' . addslashes($id) . '" ';
 
-$lockDir = '/tmp/flash-backup';
+$lockDir = '/tmp/flash-backup_beta';
 $lock    = "$lockDir/lock.txt";
 
 if (!is_dir($lockDir)) {
@@ -58,7 +58,7 @@ if (!flock($fp, LOCK_EX | LOCK_NB)) {
     exit;
 }
 
-$script = '/usr/local/emhttp/plugins/flash-backup/helpers/backup_remote.sh';
+$script = '/usr/local/emhttp/plugins/flash-backup_beta/helpers/backup_remote.sh';
 
 if (!is_file($script) || !is_executable($script)) {
     echo json_encode(['status' => 'error', 'message' => 'Remote backup script missing or not executable']);

@@ -1,7 +1,7 @@
 <?php
 header('Content-Type: application/json');
 
-$status_file = '/tmp/flash-backup/remote_backup_status.txt';
+$status_file = '/tmp/flash-backup_beta/remote_backup_status.txt';
 
 $status = 'Remote Backup Not Running';
 

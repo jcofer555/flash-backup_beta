@@ -40,14 +40,14 @@ format_duration() {
 # ----------------------------
 # Config / Paths
 # ----------------------------
-PLUGIN_NAME="flash-backup"
+PLUGIN_NAME="flash-backup_beta"
 SETTINGS_FILE="/boot/config/plugins/${PLUGIN_NAME}/settings.cfg"
 
-LOG_DIR="/tmp/flash-backup"
-LAST_RUN_FILE="$LOG_DIR/flash-backup.log"
+LOG_DIR="/tmp/flash-backup_beta"
+LAST_RUN_FILE="$LOG_DIR/flash-backup_beta.log"
 ROTATE_DIR="$LOG_DIR/archived_logs"
 STATUS_FILE="$LOG_DIR/local_backup_status.txt"
-DEBUG_LOG="$LOG_DIR/flash-backup-debug.log"
+DEBUG_LOG="$LOG_DIR/flash-backup_beta-debug.log"
 
 # ----------------------------
 # Helpers: Status + Logging
@@ -64,13 +64,13 @@ if [[ -f "$LAST_RUN_FILE" ]]; then
   max_bytes=$((10 * 1024 * 1024))
   if (( size_bytes >= max_bytes )); then
     ts="$(date +%Y%m%d_%H%M%S)"
-    mv "$LAST_RUN_FILE" "$ROTATE_DIR/flash-backup_$ts.log"
-    debug_log "Rotated main log to $ROTATE_DIR/flash-backup_$ts.log (was >= 10MB)"
+    mv "$LAST_RUN_FILE" "$ROTATE_DIR/flash-backup_beta_$ts.log"
+    debug_log "Rotated main log to $ROTATE_DIR/flash-backup_beta_$ts.log (was >= 10MB)"
   fi
 fi
 
 # Keep only 10 rotated main logs
-mapfile -t rotated_logs < <(ls -1t "$ROTATE_DIR"/flash-backup_*.log 2>/dev/null)
+mapfile -t rotated_logs < <(ls -1t "$ROTATE_DIR"/flash-backup_beta_*.log 2>/dev/null)
 if (( ${#rotated_logs[@]} > 10 )); then
   for (( i=10; i<${#rotated_logs[@]}; i++ )); do
     rm -f "${rotated_logs[$i]}"
@@ -84,13 +84,13 @@ if [[ -f "$DEBUG_LOG" ]]; then
   max_bytes=$((10 * 1024 * 1024))
   if (( size_bytes >= max_bytes )); then
     ts="$(date +%Y%m%d_%H%M%S)"
-    mv "$DEBUG_LOG" "$ROTATE_DIR/flash-backup-debug_$ts.log"
-    debug_log "Rotated debug log to $ROTATE_DIR/flash-backup-debug_$ts.log (was >= 10MB)"
+    mv "$DEBUG_LOG" "$ROTATE_DIR/flash-backup_beta-debug_$ts.log"
+    debug_log "Rotated debug log to $ROTATE_DIR/flash-backup_beta-debug_$ts.log (was >= 10MB)"
   fi
 fi
 
 # Keep only 10 rotated debug logs
-mapfile -t rotated_debug_logs < <(ls -1t "$ROTATE_DIR"/flash-backup-debug_*.log 2>/dev/null)
+mapfile -t rotated_debug_logs < <(ls -1t "$ROTATE_DIR"/flash-backup_beta-debug_*.log 2>/dev/null)
 if (( ${#rotated_debug_logs[@]} > 10 )); then
   for (( i=10; i<${#rotated_debug_logs[@]}; i++ )); do
     rm -f "${rotated_debug_logs[$i]}"
@@ -199,7 +199,7 @@ sleep 5
 # Cleanup trap
 # ----------------------------
 cleanup() {
-    LOCK_FILE="/tmp/flash-backup/lock.txt"
+    LOCK_FILE="/tmp/flash-backup_beta/lock.txt"
     rm -f "$LOCK_FILE"
     debug_log "Lock file removed"
 

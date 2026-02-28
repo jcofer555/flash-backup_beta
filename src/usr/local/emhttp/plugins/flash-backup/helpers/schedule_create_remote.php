@@ -1,7 +1,7 @@
 <?php
 require_once 'rebuild_cron_remote.php';
 
-$cfg = '/boot/config/plugins/flash-backup/schedules-remote.cfg';
+$cfg = '/boot/config/plugins/flash-backup_beta/schedules-remote.cfg';
 
 $type     = $_POST['type'] ?? '';
 $cron     = trim($_POST['cron'] ?? '');
