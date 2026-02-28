@@ -1,0 +1,19 @@
+<?php
+$logPath = '/tmp/flash-backup/flash-backup.log';
+header('Content-Type: text/plain');
+
+if (!file_exists($logPath)) {
+    echo "Flash backup log not found";
+    exit;
+}
+
+$lines = file($logPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
+// Get last 500 entries
+$tail = array_slice($lines, -500);
+
+// Show newest at the top
+$reversed = array_reverse($tail);
+
+// Display
+echo implode("\n", $reversed);
