@@ -4,7 +4,7 @@
 <PLUGIN 
   name="flash-backup_beta"
   author="jcofer555"
-  version="2026.02.28.01"
+  version="2026.02.28.04"
   launch="Settings/flash-backup_beta"
   pluginURL="https://raw.githubusercontent.com/jcofer555/flash-backup_beta/main/plugin/flash-backup_beta.plg"
   support="https://forums.unraid.net/topic/197218-flash-backup_beta-for-unraid/"
@@ -16,7 +16,7 @@
 <CHANGES>
 <![CDATA[
 
-### 2026.02.28.01
+### 2026.02.28.04
 
 - 1
 
@@ -25,9 +25,9 @@ For older releases, see https://github.com/jcofer555/flash-backup_beta/releases
 ]]>
 </CHANGES>
 
-<FILE Name="/boot/config/plugins/flash-backup_beta/unraid-flash-backup_beta-2026.02.28.01-noarch-1.txz">
-<URL>https://github.com/jcofer555/flash-backup_beta/releases/download/2026.02.28.01/unraid-flash-backup_beta-2026.02.28.01-noarch-1.txz</URL>
-<SHA256>1382a6a143c4931a1691402514e16de8ff8333d475463a021a6d6a2081a4109e</SHA256>
+<FILE Name="/boot/config/plugins/flash-backup_beta/unraid-flash-backup_beta-2026.02.28.04-noarch-1.txz">
+<URL>https://github.com/jcofer555/flash-backup_beta/releases/download/2026.02.28.04/unraid-flash-backup_beta-2026.02.28.04-noarch-1.txz</URL>
+<SHA256>7506f10fe13ae9c0902e406d99f934f57d3dc1b7a47f02e3fc4a1036d5758b86</SHA256>
 </FILE>
 
 <!-- ==========================================================
@@ -40,7 +40,7 @@ For older releases, see https://github.com/jcofer555/flash-backup_beta/releases
 #  INSTALL / UPGRADE LOGIC
 # ==========================================================
 
-PACKAGE_TXZ="/boot/config/plugins/flash-backup_beta/unraid-flash-backup_beta-2026.02.28.01-noarch-1.txz"
+PACKAGE_TXZ="/boot/config/plugins/flash-backup_beta/unraid-flash-backup_beta-2026.02.28.04-noarch-1.txz"
 USER_CFG="/boot/config/plugins/flash-backup_beta/settings.cfg"
 REMOTE_USER_CFG="/boot/config/plugins/flash-backup_beta/settings_remote.cfg"
 DEFAULT_CFG="/usr/local/emhttp/plugins/flash-backup_beta/helpers/default_settings.cfg"
@@ -126,12 +126,12 @@ fi
 mv "$REMOTE_TMP_CFG" "$REMOTE_USER_CFG"
 
 # Remove older txz packages (keep only the current one)
-find /boot/config/plugins/flash-backup_beta/ -maxdepth 1 -type f -name "unraid-flash-backup_beta-*.txz" ! -name "unraid-flash-backup_beta-2026.02.28.01-noarch-1.txz" -delete
+find /boot/config/plugins/flash-backup_beta/ -maxdepth 1 -type f -name "unraid-flash-backup_beta-*.txz" ! -name "unraid-flash-backup_beta-2026.02.28.04-noarch-1.txz" -delete
 
 echo ""
 echo "----------------------------------------------------"
 echo " flash-backup_beta has been installed."
-echo " Version: 2026.02.28.01"
+echo " Version: 2026.02.28.04"
 echo "----------------------------------------------------"
 echo ""
 
