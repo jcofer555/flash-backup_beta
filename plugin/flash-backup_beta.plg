@@ -4,7 +4,7 @@
 <PLUGIN 
   name="flash-backup_beta"
   author="jcofer555"
-  version="2026.02.28.04"
+  version="2026.03.01.01"
   launch="Settings/flash-backup_beta"
   pluginURL="https://raw.githubusercontent.com/jcofer555/flash-backup_beta/main/plugin/flash-backup_beta.plg"
   support="https://forums.unraid.net/topic/197218-flash-backup_beta-for-unraid/"
@@ -16,6 +16,10 @@
 <CHANGES>
 <![CDATA[
 
+### 2026.03.01.01
+
+- 1
+
 ### 2026.02.28.04
 
 - 1
@@ -25,9 +29,9 @@ For older releases, see https://github.com/jcofer555/flash-backup_beta/releases
 ]]>
 </CHANGES>
 
-<FILE Name="/boot/config/plugins/flash-backup_beta/unraid-flash-backup_beta-2026.02.28.04-noarch-1.txz">
-<URL>https://github.com/jcofer555/flash-backup_beta/releases/download/2026.02.28.04/unraid-flash-backup_beta-2026.02.28.04-noarch-1.txz</URL>
-<SHA256>7506f10fe13ae9c0902e406d99f934f57d3dc1b7a47f02e3fc4a1036d5758b86</SHA256>
+<FILE Name="/boot/config/plugins/flash-backup_beta/unraid-flash-backup_beta-2026.03.01.01-noarch-1.txz">
+<URL>https://github.com/jcofer555/flash-backup_beta/releases/download/2026.03.01.01/unraid-flash-backup_beta-2026.03.01.01-noarch-1.txz</URL>
+<SHA256>b5beb714a56b8b920d7acf34e746f0465ce4f1155eec45c175d3216badcf9452</SHA256>
 </FILE>
 
 <!-- ==========================================================
@@ -40,7 +44,7 @@ For older releases, see https://github.com/jcofer555/flash-backup_beta/releases
 #  INSTALL / UPGRADE LOGIC
 # ==========================================================
 
-PACKAGE_TXZ="/boot/config/plugins/flash-backup_beta/unraid-flash-backup_beta-2026.02.28.04-noarch-1.txz"
+PACKAGE_TXZ="/boot/config/plugins/flash-backup_beta/unraid-flash-backup_beta-2026.03.01.01-noarch-1.txz"
 USER_CFG="/boot/config/plugins/flash-backup_beta/settings.cfg"
 REMOTE_USER_CFG="/boot/config/plugins/flash-backup_beta/settings_remote.cfg"
 DEFAULT_CFG="/usr/local/emhttp/plugins/flash-backup_beta/helpers/default_settings.cfg"
@@ -52,16 +56,24 @@ CRON_FILE="/boot/config/plugins/flash-backup_beta/flash-backup_beta.cron"
 # Install the package
 upgradepkg --install-new "$PACKAGE_TXZ"
 
+# Ensure tmp directory exists
+mkdir -p /tmp/flash-backup
+
 # Ordered config keys
 ordered_keys=(
-	"MINIMAL_BACKUP"
 	"BACKUP_DESTINATION"
-	"BACKUPS_TO_KEEP"
 	"BACKUP_OWNER"
-    "DRY_RUN"
-    "NOTIFICATIONS"
-	"DISCORD_WEBHOOK_URL"
+	"BACKUPS_TO_KEEP"
+	"DRY_RUN"
+	"MINIMAL_BACKUP"
+	"NOTIFICATION_SERVICE"
+	"NOTIFICATIONS"
 	"PUSHOVER_USER_KEY"
+	"WEBHOOK_DISCORD"
+	"WEBHOOK_GOTIFY"
+	"WEBHOOK_NTFY"
+	"WEBHOOK_PUSHOVER"
+	"WEBHOOK_SLACK"
 )
 
 # ==========================================================
@@ -90,15 +102,20 @@ mv "$TMP_CFG" "$USER_CFG"
 
 # Ordered config keys
 remote_ordered_keys=(
-    "MINIMAL_BACKUP_REMOTE"
-    "RCLONE_CONFIG_REMOTE"
 	"B2_BUCKET_NAME"
-	"REMOTE_PATH_IN_CONFIG"
-    "BACKUPS_TO_KEEP_REMOTE"
-    "DRY_RUN_REMOTE"
+	"BACKUPS_TO_KEEP_REMOTE"
+	"DRY_RUN_REMOTE"
+	"MINIMAL_BACKUP_REMOTE"
+	"NOTIFICATION_SERVICE_REMOTE"
 	"NOTIFICATIONS_REMOTE"
-	"DISCORD_WEBHOOK_URL_REMOTE"
 	"PUSHOVER_USER_KEY_REMOTE"
+	"RCLONE_CONFIG_REMOTE"
+	"REMOTE_PATH_IN_CONFIG"
+	"WEBHOOK_DISCORD_REMOTE"
+	"WEBHOOK_GOTIFY_REMOTE"
+	"WEBHOOK_NTFY_REMOTE"
+	"WEBHOOK_PUSHOVER_REMOTE"
+	"WEBHOOK_SLACK_REMOTE"
 )
 
 # ==========================================================
@@ -126,12 +143,15 @@ fi
 mv "$REMOTE_TMP_CFG" "$REMOTE_USER_CFG"
 
 # Remove older txz packages (keep only the current one)
-find /boot/config/plugins/flash-backup_beta/ -maxdepth 1 -type f -name "unraid-flash-backup_beta-*.txz" ! -name "unraid-flash-backup_beta-2026.02.28.04-noarch-1.txz" -delete
+find /boot/config/plugins/flash-backup_beta/ -maxdepth 1 -type f -name "unraid-flash-backup_beta-*.txz" ! -name "unraid-flash-backup_beta-2026.03.01.01-noarch-1.txz" -delete
+
+# Ensure helper scripts are executable
+chmod +x /usr/local/emhttp/plugins/flash-backup_beta/helpers/*
 
 echo ""
 echo "----------------------------------------------------"
 echo " flash-backup_beta has been installed."
-echo " Version: 2026.02.28.04"
+echo " Version: 2026.03.01.01"
 echo "----------------------------------------------------"
 echo ""
 
