@@ -70,15 +70,15 @@ if (file_exists(SCHEDULES_CFG)) {
 
 <?php if (!empty($schedules)): ?>
 
-<h3>📅 Scheduled Local Backup Jobs</h3>
+<h3 style="color:#d4f5d4;">📅 Scheduled Local Backup Jobs</h3>
 
-<table class="flash-backup_beta-schedules-table"
+<table class="flash-backup_beta-schedules-table flash-backup_beta-schedule-responsive"
        style="
            width:100%;
+           table-layout:fixed;
            border-collapse: collapse;
            margin-top:20px;
            border:3px solid #2ECC40;
-           table-layout:fixed;
            background:#000;
        ">
 
@@ -89,14 +89,14 @@ if (file_exists(SCHEDULES_CFG)) {
     text-align:center;
     border-bottom:3px solid #2ECC40;
 ">
-    <th style="padding:8px; width:18%;">Scheduling</th>
-    <th style="padding:8px; width:7%;">Minimal Backup</th>
-    <th style="padding:8px; width:20%;">Backup Destination</th>
-    <th style="padding:8px; width:9%;">Backups To Keep</th>
+    <th style="padding:8px; width:20%;">Scheduling</th>
+    <th style="padding:8px; width:6%;">Minimal Backup</th>
+    <th style="padding:8px; width:24%;">Backup Destination</th>
+    <th style="padding:8px; width:8%;">Backups To Keep</th>
     <th style="padding:8px; width:8%;">Backup Owner</th>
     <th style="padding:8px; width:6%;">Dry Run</th>
-    <th style="padding:8px; width:8%;">Notifications</th>
-    <th style="padding:8px; width:21%;">Actions</th>
+    <th style="padding:8px; width:6%;">Notifications</th>
+    <th style="padding:8px; width:23%;">Actions</th>
 </tr>
 </thead>
 
@@ -141,29 +141,30 @@ if (file_exists(SCHEDULES_CFG)) {
 
     <tr style="
         background:#000;
-        color:#dddddd;
+        color:#d4f5d4;
         border-left:3px solid <?php echo $sideBorder; ?>;
         border-right:3px solid <?php echo $sideBorder; ?>;
         border-bottom:3px solid #2ECC40;
+        vertical-align:middle;
     ">
 
         <td style="padding:8px; text-align:center;">
             <span style="margin-right:6px;"><?php echo $statusDot; ?></span>
-            <?php echo htmlspecialchars(human_cron($cron)); ?>
+            <span class="flash-backup_betatip" title="<?php echo htmlspecialchars(human_cron($cron) . ' - ' . $cron); ?>"><?php echo htmlspecialchars(human_cron($cron)); ?></span>
         </td>
 
         <td style="padding:8px; text-align:center;"><?php echo htmlspecialchars($minimalBackup); ?></td>
-        <td style="padding:8px; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><?php echo htmlspecialchars($dest); ?></td>
+        <td style="padding:8px; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:0;"><span class="flash-backup_betatip" title="<?php echo htmlspecialchars($dest); ?>"><?php echo htmlspecialchars($dest); ?></span></td>
         <td style="padding:8px; text-align:center;"><?php echo htmlspecialchars($backupsToKeep); ?></td>
         <td style="padding:8px; text-align:center;"><?php echo htmlspecialchars($backupOwner); ?></td>
         <td style="padding:8px; text-align:center;"><?php echo htmlspecialchars($dryRun); ?></td>
         <td style="padding:8px; text-align:center;"><?php echo htmlspecialchars($notify); ?></td>
 
-        <td style="padding:8px; text-align:center;">
+        <td class="schedule-actions-cell" style="padding:8px; text-align:center; white-space:normal;">
             <button type="button" onclick="editSchedule('<?php echo $id_esc; ?>')">Edit</button>
             <button type="button" onclick="toggleSchedule('<?php echo $id_esc; ?>', <?php echo $enabledBool ? 'true' : 'false'; ?>)"><?php echo $btnText; ?></button>
             <button type="button" onclick="deleteSchedule('<?php echo $id_esc; ?>')">Delete</button>
-            <button type="button" onclick="runScheduleBackup('<?php echo $id_esc; ?>', this)">Run</button>
+            <button type="button" class="schedule-run-btn" onclick="runScheduleBackup('<?php echo $id_esc; ?>', this)">Run</button>
         </td>
 
     </tr>

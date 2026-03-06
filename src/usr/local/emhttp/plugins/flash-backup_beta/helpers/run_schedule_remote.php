@@ -73,7 +73,7 @@ function write_lock_meta(mixed $fp, string $pid, string $id): void {
 // ------------------------------------------------------------------------------
 function main(): void {
     // --- Option C: get schedule ID from environment variable ---
-    $id = trim(getenv('SCHEDULE_ID') ?: '');
+    $id = trim(getenv('SCHEDULE_ID') ?: ($_POST['id'] ?? ''));
 
     if ($id === '') {
         respond(400, ['status' => 'error', 'message' => 'Missing schedule ID']);
