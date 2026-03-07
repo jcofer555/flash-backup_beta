@@ -11,6 +11,6 @@
 - Dry run support
 - Notification support for discord, gotify, ntfy, pushover, slack, and unraids built in
 - Ability to set an owner for your local backups
-- Logging available in the webui and at /tmp/flash-backup
+- Logging available in the webui and at /tmp/flash-backup_beta
 
 <img width="1919" height="921" alt="image" src="https://github.com/user-attachments/assets/d1641db0-33e3-413a-896e-566b6c3226fc" />
