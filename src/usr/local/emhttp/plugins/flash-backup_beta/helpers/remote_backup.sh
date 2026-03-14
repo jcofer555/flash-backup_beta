@@ -6,7 +6,7 @@ readonly LOG_DIR="/tmp/flash-backup_beta"
 readonly LAST_RUN_FILE="${LOG_DIR}/flash-backup_beta.log"
 readonly ROTATE_DIR="${LOG_DIR}/archived_logs"
 readonly STATUS_FILE="${LOG_DIR}/remote_backup_status.txt"
-readonly DEBUG_LOG="${LOG_DIR}/flash-backup_beta-remote-debug.log"
+readonly DEBUG_LOG="${LOG_DIR}/flash-backup_beta-debug.log"
 # Rotate log files when they exceed 10 MB
 readonly LOG_MAX_BYTES=$(( 10 * 1024 * 1024 ))
 # Number of rotated log archives to retain before purging the oldest
