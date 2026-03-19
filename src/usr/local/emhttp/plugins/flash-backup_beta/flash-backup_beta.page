@@ -31,7 +31,8 @@ $settings = $existing;
 <?php
 $remoteCfgPath = '/boot/config/plugins/flash-backup_beta/settings_remote.cfg';
 $remoteDefaults = [
-    'B2_BUCKET_NAME'              => '',
+    'B2_BUCKET_NAME'              => '',   // legacy — retained for backward compatibility with old schedules
+    'BUCKET_NAMES'                => '',   // per-remote bucket map (JSON), supersedes B2_BUCKET_NAME
     'BACKUPS_TO_KEEP_REMOTE'      => '0',
     'DRY_RUN_REMOTE'              => 'no',
     'MINIMAL_BACKUP_REMOTE'       => 'no',
@@ -144,16 +145,20 @@ if (!empty($rcloneIni)) {
         $type = $rcloneIni[$r]['type'] ?? 'unknown';
         $remoteTypes[$r] = $type;
 
-        // Detect crypt remotes backed by B2
+        // Detect crypt remotes — check what the underlying remote type is
         if ($type === 'crypt') {
 
             $underlying = explode(':', $rcloneIni[$r]['remote'] ?? '')[0];
 
-            if (
-                isset($rcloneIni[$underlying]) &&
-                ($rcloneIni[$underlying]['type'] ?? '') === 'b2'
-            ) {
-                $remoteTypes[$r] = 'crypt-b2';
+            if (isset($rcloneIni[$underlying])) {
+                $underlyingType = $rcloneIni[$underlying]['type'] ?? '';
+
+                if ($underlyingType === 'b2') {
+                    $remoteTypes[$r] = 'crypt-b2';
+                } elseif ($underlyingType === 's3') {
+                    // Crypt over any S3-compatible remote (Wasabi, AWS, etc.) also needs a bucket
+                    $remoteTypes[$r] = 'crypt-s3';
+                }
             }
         }
     }
@@ -197,6 +202,16 @@ $selectedRemotes = array_filter(array_map('trim', explode(',', $saved)));
   };
   const SAVED_PUSHOVER_USER_KEY        = "<?= htmlspecialchars($settings['PUSHOVER_USER_KEY']              ?? '') ?>";
   const SAVED_PUSHOVER_USER_KEY_REMOTE = "<?= htmlspecialchars($remotesettings['PUSHOVER_USER_KEY_REMOTE'] ?? '') ?>";
+  // Per-remote bucket names map — stored as base64-encoded JSON, decoded here for use in the UI
+  const SAVED_BUCKET_NAMES = (function() {
+    try {
+      const b64 = "<?= addslashes($remotesettings['BUCKET_NAMES'] ?? '') ?>";
+      if (!b64) return {};
+      const json = atob(b64);
+      return JSON.parse(json) || {};
+    } catch(e) { return {}; }
+  })();
+  const SAVED_B2_BUCKET_NAME_LEGACY = "<?= htmlspecialchars($remotesettings['B2_BUCKET_NAME'] ?? '') ?>";
 </script>
 
 <style>
@@ -459,7 +474,7 @@ $selectedRemotes = array_filter(array_map('trim', explode(',', $saved)));
 }
 #backup_destination,
 #remote_path_in_config,
-#b2_bucket_name,
+.bucket-name-input,
 .webhook-url-input,
 #fbb-page #webhook-fields-container input[type="text"],
 #fbb-page #webhook-fields-container-remote input[type="text"] {
@@ -951,10 +966,8 @@ input.invalid { border-color:var(--c-danger) !important; color:var(--c-danger) !
           </span>
         </div>
 
-        <div class="form-pair fbb-row-hidden" id="b2_bucket_row">
-          <label><span class="flash-backup_betatip" title="Required for Backblaze B2 remotes — the bucket name">B2 Bucketname:</span></label>
-          <span><input type="text" id="b2_bucket_name" name="B2_BUCKET_NAME" placeholder="/folder/" autocomplete="off" style="height:29px !important;box-sizing:border-box !important;" value="<?=htmlspecialchars($remotesettings['B2_BUCKET_NAME']??'')?>"></span>
-        </div>
+        <!-- Per-remote bucket name fields — rendered dynamically by updateBucketVisibility() -->
+        <div id="bucket-fields-container"></div>
 
         <div class="form-pair">
           <label><span class="flash-backup_betatip" title="Optional: subfolder where backups will be stored. If left empty /Flash_Backups/ will be used">Folder:</span></label>
@@ -1365,7 +1378,7 @@ function fbbSwitchMode(mode) {
     const selected = $('#rclone-config-list-remote').find('input:checked').map(function () { return $(this).val(); }).get();
     $('#rclone-config-label-remote').text(selected.length ? selected.join(', ') : 'Select config(s)');
     $('#rclone_config_remote_hidden option').each(function () { $(this).prop('selected', selected.includes($(this).val())); });
-    updateB2BucketVisibility();
+    updateBucketVisibility();
   });
 
   var scheduleUILocked = false;
@@ -1394,13 +1407,92 @@ function fbbSwitchMode(mode) {
   var scheduleUILockedremote = false;
   var rebuildTokenremote = 0;
 
-  function updateB2BucketVisibility() {
-    const selected = $('#rclone_config_remote_hidden').val() || [];
-    const anyB2 = selected.some(r => remoteTypes[r] === 'b2' || remoteTypes[r] === 'crypt-b2');
-    if (anyB2) { $('#b2_bucket_row').removeClass('fbb-row-hidden'); }
-    else { $('#b2_bucket_row').addClass('fbb-row-hidden'); $('#b2_bucket_name').val(''); }
+  // Remote types that require a bucket name in the destination path
+  const BUCKET_REMOTE_TYPES = ['b2', 'crypt-b2', 's3', 'crypt-s3'];
+
+  // Sanitize a bucket input value: strip slashes, ensure trailing slash
+  function normalizeBucketName(val, isB2Only) {
+    val = val.trim();
+    if (!val) return val;
+    val = val.replace(/\/+/g, '/');
+    if (isB2Only) val = val.toLowerCase();
+    if (!val.endsWith('/')) val += '/';
+    return val;
   }
-  updateB2BucketVisibility();
+
+  // Collect current bucket name values as a plain object keyed by remote name
+  function collectBucketNames() {
+    const map = {};
+    $('#bucket-fields-container .bucket-name-input').each(function () {
+      const remote = $(this).data('remote');
+      const val = $(this).val().trim();
+      if (remote && val) map[remote] = val;
+    });
+    return map;
+  }
+
+  // Rebuild the per-remote bucket input fields whenever the selected remotes change
+  function updateBucketVisibility() {
+    const selected = $('#rclone_config_remote_hidden').val() || [];
+    const container = $('#bucket-fields-container');
+
+    // Capture any values already typed before rebuilding
+    const existing = collectBucketNames();
+
+    container.empty();
+
+    const bucketRemotes = selected.filter(r => BUCKET_REMOTE_TYPES.includes(remoteTypes[r]));
+
+    bucketRemotes.forEach(function(remote) {
+      const isB2 = remoteTypes[remote] === 'b2' || remoteTypes[remote] === 'crypt-b2';
+      const typeLabel = isB2 ? 'B2' : 'S3';
+      const placeholder = isB2 ? 'my-b2-bucket' : 'my-s3-bucket';
+      const fieldId = 'bucket_name_' + remote.replace(/[^a-zA-Z0-9_]/g, '_');
+      const tooltip = `Bucket name for ${remote} (${typeLabel}) — do not include a leading slash`;
+
+      // Resolve saved value: prefer existing typed value, then BUCKET_NAMES map,
+      // then legacy B2_BUCKET_NAME if there is only one B2 remote
+      let savedVal = existing[remote] || SAVED_BUCKET_NAMES[remote] || '';
+      if (!savedVal && isB2 && SAVED_B2_BUCKET_NAME_LEGACY) {
+        savedVal = SAVED_B2_BUCKET_NAME_LEGACY;
+      }
+
+      const row = $(`
+        <div class="form-pair bucket-field-row" data-remote="${remote}">
+          <label><span class="flash-backup_betatip" title="${tooltip}">Bucket (${remote}):</span></label>
+          <span><input type="text"
+            id="${fieldId}"
+            class="bucket-name-input"
+            data-remote="${remote}"
+            data-is-b2="${isB2 ? '1' : '0'}"
+            placeholder="${placeholder}"
+            autocomplete="off"
+            style="height:29px !important;box-sizing:border-box !important;"
+            value="${savedVal}"></span>
+        </div>
+      `);
+      container.append(row);
+    });
+
+    // Wire up blur normalization for newly created inputs
+    container.find('.bucket-name-input').off('blur').on('blur', function () {
+      const isB2 = $(this).data('is-b2') === '1' || $(this).data('is-b2') === 1;
+      $(this).val(normalizeBucketName($(this).val(), isB2));
+    });
+
+    // Normalize any pre-filled values on first render
+    container.find('.bucket-name-input').each(function () {
+      const isB2 = $(this).data('is-b2') === '1' || $(this).data('is-b2') === 1;
+      if ($(this).val().trim()) $(this).val(normalizeBucketName($(this).val(), isB2));
+    });
+
+    if (window._fbbProcessLabels) window._fbbProcessLabels(container);
+  }
+
+  // Keep old name as alias
+  function updateB2BucketVisibility() { updateBucketVisibility(); }
+
+  updateBucketVisibility();
 
   function validateBackupPrereqsremote() {
     const selectedRemotes = $('#rclone_config_remote_hidden').val() || [];
@@ -1414,12 +1506,14 @@ function fbbSwitchMode(mode) {
       const validName = /^[A-Za-z0-9._+\-@ ]+$/;
       for (const p of parts) { if (!validName.test(p)) { alert('Invalid character detected in folder name: "' + p + '"\n\nAllowed characters:\nletters, numbers, space, _ - . + @'); return false; } }
     }
-    const anyB2 = selectedRemotes.some(r => remoteTypes[r] === 'b2' || remoteTypes[r] === 'crypt-b2');
-    if (anyB2) {
-      const b2Bucket = $('#b2_bucket_name').val().trim();
-      if (!b2Bucket) { alert('B2 Bucketname is required when a Backblaze B2 config is selected'); return false; }
-      const b2BucketStripped = b2Bucket.replace(/\/+$/, '');
-      if (!/^[A-Za-z0-9._\-]+$/.test(b2BucketStripped)) { alert('Invalid B2 bucket name: "' + b2Bucket + '"\n\nAllowed characters:\nletters, numbers, - . _'); return false; }
+    // Validate every bucket-needing remote has a non-empty, valid bucket name
+    const bucketRemotes = selectedRemotes.filter(r => BUCKET_REMOTE_TYPES.includes(remoteTypes[r]));
+    for (const remote of bucketRemotes) {
+      const input = $(`#bucket-fields-container .bucket-name-input[data-remote="${remote}"]`);
+      const bucketVal = input.val().trim();
+      if (!bucketVal) { alert(`Bucket name is required for remote "${remote}"`); input.focus(); return false; }
+      const bucketStripped = bucketVal.replace(/\/+$/, '');
+      if (!/^[A-Za-z0-9._\-]+$/.test(bucketStripped)) { alert(`Invalid bucket name for "${remote}": "${bucketVal}"\n\nAllowed characters:\nletters, numbers, - . _`); input.focus(); return false; }
     }
     if ($('#notifications_remote').val() === 'yes' && getSelectedServices('remote').includes('Pushover')) {
       if (!$('#pushover_user_key_remote').val().trim()) { alert('Please enter your Pushover user key'); return false; }
@@ -1897,18 +1991,6 @@ function fbbSwitchMode(mode) {
       .always(function () { backupRequestInProgress = false; });
   });
 
-  let b2BucketNameTimer;
-  $('#b2_bucket_name').on('input', function () {
-    let val = $(this).val().replace(/\/+/g, '/'); $(this).val(val);
-    clearTimeout(b2BucketNameTimer);
-    b2BucketNameTimer = setTimeout(() => { let v = $('#b2_bucket_name').val().trim(); if (v && !v.endsWith('/')) $('#b2_bucket_name').val(v + '/'); }, 2000);
-  });
-  $('#b2_bucket_name').on('blur', function () {
-    let val = $(this).val().trim().toLowerCase(); if (!val) return;
-    val = val.replace(/\/+/g, '/'); if (!val.endsWith('/')) val += '/'; $(this).val(val);
-  });
-  $(function () { let val = $('#b2_bucket_name').val().trim(); if (!val) return; val = val.replace(/\/+/g, '/'); if (!val.endsWith('/')) val += '/'; $('#b2_bucket_name').val(val); });
-
   $('#backupbtn_remote').on('click', async function () {
     if (backupRequestInProgressRemote) return;
     const selectedRemotes = $('#rclone_config_remote_hidden').val() || [];
@@ -1921,24 +2003,26 @@ function fbbSwitchMode(mode) {
       const validName = /^[A-Za-z0-9._+\-@ ]+$/;
       for (const p of parts) { if (!validName.test(p)) { alert('Invalid character in folder name: "' + p + '"'); return; } }
     }
-    const anyB2 = selectedRemotes.some(r => remoteTypes[r] === 'b2' || remoteTypes[r] === 'crypt-b2');
-    if (anyB2) {
-      const b2Bucket = $('#b2_bucket_name').val().trim();
-      if (!b2Bucket) { alert('B2 Bucketname is required when a Backblaze B2 config is selected'); return; }
-      if (!/^[A-Za-z0-9._\-]+$/.test(b2Bucket.replace(/\/+$/, ''))) { alert('Invalid B2 bucket name'); return; }
+    // Validate per-remote bucket names
+    const bucketRemotes = selectedRemotes.filter(r => BUCKET_REMOTE_TYPES.includes(remoteTypes[r]));
+    for (const remote of bucketRemotes) {
+      const input = $(`#bucket-fields-container .bucket-name-input[data-remote="${remote}"]`);
+      const bucketVal = input.val().trim();
+      if (!bucketVal) { alert(`Bucket name is required for remote "${remote}"`); input.focus(); return; }
+      if (!/^[A-Za-z0-9._\-]+$/.test(bucketVal.replace(/\/+$/, ''))) { alert(`Invalid bucket name for "${remote}"\n\nAllowed characters:\nletters, numbers, - . _`); input.focus(); return; }
     }
     if ($('#notifications_remote').val() === 'yes' && getSelectedServices('remote').includes('Pushover')) {
       if (!$('#pushover_user_key_remote').val().trim()) { alert('Please enter your Pushover user key'); return; }
     }
     backupRequestInProgressRemote = true;
     let finalPath = remotePath === '' ? '/Flash_Backups/' : remotePath;
-    const b2Bucket = $('#b2_bucket_name').val().trim();
+    const bucketNamesMap = collectBucketNames();
     const webhookParamsRemote = {};
     $('#webhook-fields-container-remote .webhook-url-input').each(function () {
       webhookParamsRemote['WEBHOOK_' + $(this).data('service').toUpperCase() + '_REMOTE'] = $(this).val().trim();
     });
     $.post('/plugins/flash-backup_beta/helpers/save_settings_remote.php', {
-      B2_BUCKET_NAME:              b2Bucket,
+      BUCKET_NAMES:                JSON.stringify(bucketNamesMap),
       BACKUPS_TO_KEEP_REMOTE:      $('#backups_to_keep_remote').val(),
       DRY_RUN_REMOTE:              $('#dry_run_remote').val(),
       MINIMAL_BACKUP_REMOTE:       $('#minimal_backup_remote').is(':checked') ? 'yes' : 'no',
@@ -2133,7 +2217,21 @@ function fbbSwitchMode(mode) {
         $('#rclone-config-list-remote input[type=checkbox]').each(function () { $(this).prop('checked', vals.includes($(this).val())); });
         $('#rclone-config-label-remote').text(vals.length ? vals.join(', ') : 'Select config(s)');
         $('#rclone_config_remote_hidden option').each(function () { $(this).prop('selected', vals.includes($(this).val())); });
-        updateB2BucketVisibility();
+        updateBucketVisibility();
+        // Restore saved bucket names into the freshly rendered per-remote fields
+        let savedBuckets = {};
+        try {
+          const b64 = settings.BUCKET_NAMES || '';
+          if (b64) savedBuckets = JSON.parse(atob(b64)) || {};
+        } catch(e) {}
+        // Fall back to legacy B2_BUCKET_NAME for old schedules that pre-date multi-bucket support
+        const legacyBucket = settings.B2_BUCKET_NAME || '';
+        $('#bucket-fields-container .bucket-name-input').each(function () {
+          const remote = $(this).data('remote');
+          let val = savedBuckets[remote] || '';
+          if (!val && legacyBucket) val = legacyBucket;
+          if (val) $(this).val(val);
+        });
       }
       window.editingScheduleIdremote = id;
       $('#schedule-remote-backup').text('Update');
