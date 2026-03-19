@@ -1,7 +1,6 @@
 {
     "files": [
         "/tmp/flash-backup_beta/flash-backup_beta.log",
-        "/tmp/flash-backup_beta/flash-backup_beta-local-debug.log",
-        "/tmp/flash-backup_beta/flash-backup_beta-remote-debug.log"
+        "/tmp/flash-backup_beta/flash-backup_beta-debug.log"
     ]
 }
