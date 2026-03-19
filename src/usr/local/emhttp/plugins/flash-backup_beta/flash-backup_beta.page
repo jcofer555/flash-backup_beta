@@ -79,23 +79,94 @@ $all_plugin_options_arr = $sibling_plugins_arr;
 uasort($all_plugin_options_arr, fn($a,$b) => strcmp($a['label'],$b['label']));
 ?>
 <?php
-$rcloneConfig = '/boot/config/plugins/rclone/.rclone.conf';
-$rcloneIni = []; $rcloneRemotes = []; $remoteTypes = [];
-if (file_exists($rcloneConfig)) {
-    $rcloneIni = parse_ini_file($rcloneConfig, true, INI_SCANNER_RAW) ?: [];
+
+// -----------------------------------------------------------------------------
+// RCLONE CONFIG DISCOVERY (priority order)
+// -----------------------------------------------------------------------------
+
+$rcloneConfigs = [
+
+    // Priority #1
+    '/boot/config/plugins/rclone/.rclone.conf',
+
+    // Priority #2 (equal priority group)
+    '/mnt/user/appdata/rclone/rclone.conf',
+    '/mnt/user/appdata/Rclone/.rclone.conf',
+    '/mnt/user/appdata/binhex-rclone/rclone/config/rclone.conf',
+    '/mnt/user/appdata/Rclone-mount/.rclone.conf',
+
+    // Priority #3 (fallback)
+    '/boot/config/rclone/rclone.conf'
+];
+
+$rcloneIni = [];
+$rcloneRemotes = [];
+$remoteTypes = [];
+$remoteSources = []; // track where each remote came from
+
+
+// -----------------------------------------------------------------------------
+// LOAD CONFIG FILES IN PRIORITY ORDER
+// -----------------------------------------------------------------------------
+
+foreach ($rcloneConfigs as $config) {
+
+    if (!file_exists($config)) {
+        continue;
+    }
+
+    $parsed = parse_ini_file($config, true, INI_SCANNER_RAW) ?: [];
+
+    foreach ($parsed as $remoteName => $data) {
+
+        // First definition wins (higher priority config overrides lower)
+        if (isset($rcloneIni[$remoteName])) {
+            continue;
+        }
+
+        $rcloneIni[$remoteName] = $data;
+        $remoteSources[$remoteName] = $config;
+    }
+}
+
+
+// -----------------------------------------------------------------------------
+// BUILD REMOTE LIST
+// -----------------------------------------------------------------------------
+
+if (!empty($rcloneIni)) {
+
     $rcloneRemotes = array_keys($rcloneIni);
     sort($rcloneRemotes, SORT_NATURAL | SORT_FLAG_CASE);
+
     foreach ($rcloneRemotes as $r) {
+
         $type = $rcloneIni[$r]['type'] ?? 'unknown';
         $remoteTypes[$r] = $type;
+
+        // Detect crypt remotes backed by B2
         if ($type === 'crypt') {
-            $ul = explode(':', $rcloneIni[$r]['remote'] ?? '')[0];
-            if (($rcloneIni[$ul]['type'] ?? '') === 'b2') $remoteTypes[$r] = 'crypt-b2';
+
+            $underlying = explode(':', $rcloneIni[$r]['remote'] ?? '')[0];
+
+            if (
+                isset($rcloneIni[$underlying]) &&
+                ($rcloneIni[$underlying]['type'] ?? '') === 'b2'
+            ) {
+                $remoteTypes[$r] = 'crypt-b2';
+            }
         }
     }
 }
+
+
+// -----------------------------------------------------------------------------
+// LOAD SAVED REMOTES FROM SETTINGS
+// -----------------------------------------------------------------------------
+
 $saved = $remotesettings['RCLONE_CONFIG_REMOTE'] ?? '';
 $selectedRemotes = array_filter(array_map('trim', explode(',', $saved)));
+
 ?>
 
 <script>
@@ -426,10 +497,10 @@ div.vm-multiselect.short-input {
   height:732px; margin-top:-27px;
 }
 .fbb-log-toolbar {
-  display:flex; align-items:center; gap:6px; padding:3px 12px;
+  display:flex; align-items:center; gap:6px; padding:3px 0 3px 16px;
   background:var(--c-surface-raised); border-bottom:1px solid var(--c-border); flex-shrink:0;
 }
-.fbb-log-toolbar-right { display:flex; align-items:center; gap:6px; margin-left:auto; }
+.fbb-log-toolbar-right { display:flex; align-items:center; gap:6px; margin-left:auto; margin-right:0px; }
 #log-toast { font-size:11px; color:var(--c-accent-light); white-space:nowrap; pointer-events:none; min-width:60px; visibility:hidden; }
 #log-toast.visible { visibility:visible; }
 #log-search-count { font-size:11px; color:var(--c-text); white-space:nowrap; width:68px; flex-shrink:0; display:inline-block; visibility:hidden; }
